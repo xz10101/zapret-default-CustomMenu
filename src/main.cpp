@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#include <fstream>
+#include <chrono>
 #include <windows.h>
 // #include <conio.h>
 #include "WindowsProcess.h"
@@ -22,6 +24,10 @@
 // Основной путь для работы с запретом
 namespace fsCore = std::filesystem;
 
+std::ofstream fileLog ("log_file.log");
+
+static auto now = std::chrono::system_clock::now();
+static auto local_time = std::chrono::current_zone()->to_local(now);
 
 fsCore::path GetExeDirectory() {
     wchar_t buffer[MAX_PATH] = {0};
@@ -53,7 +59,7 @@ std::vector<std::string> ReturnBatService(const fsCore::path& dir) {
 void menu() {
     fsCore::path exe_dir = GetExeDirectory();
     fsCore::path zapret_dir = exe_dir / "zapret_discord_youtube";
-
+    fileLog << "[" << local_time << "]" << " ->  " << "zapret-console is started\n";
     while (true) {
         std::system("cls");
         std::println("Welcome to menu ZAPRET-DISCORD-CONSOLE");
@@ -63,6 +69,7 @@ void menu() {
         auto bat_files = ReturnBatService(zapret_dir);
         if (bat_files.empty()) {
             std::println("Error! No .bat files found.");
+            fileLog << "[" << local_time << "]" << " ->  " << "not found .bat files, return\n";
             std::system("pause");
             return;
         }
@@ -76,13 +83,19 @@ void menu() {
 
         std::string selectBat;
         std::cin >> selectBat;
-        if (selectBat == "q" || selectBat == "Q") return;
+        if (selectBat == "q" || selectBat == "Q")  {
+            
+            fileLog << "[" << local_time << "]" << " ->  " << "close program, bye!\n";
+            return;
+        }
 
         int selectInt;
         try {
             selectInt = std::stoi(selectBat);
+            fileLog << "[" << local_time << "]" << " ->  " << "selectbat var switch on int\n";
         } catch (...) {
             std::println("Error! Enter a valid number.");
+            fileLog << "[" << local_time << "]" << " ->  " << "valid number, return\n";
             std::system("pause");
             continue;
         }
@@ -105,13 +118,17 @@ void menu() {
         if (CheckProcessName(L"winws.exe")) {
             int result_mb = MessageBoxW(NULL,
                 L"zapret-discord-youtube уже запущен! Хотите закрыть его?",
-                L"Предупреждение", MB_YESNO | MB_ICONWARNING);
+                L"Предупреждение", 
+                MB_YESNO | MB_ICONWARNING
+            );
 
             if (result_mb == IDYES) {
+                fileLog << "[" << local_time << "]" << " ->  " << "zapret is open, say this users\n";
                 KillProcessName(L"winws.exe");
                 std::system(cmd.c_str());
             }
         } else {
+            fileLog << "[" << local_time << "]" << " ->  " << "started winws.exe\n";
             std::system(cmd.c_str());
         }
 
@@ -120,12 +137,12 @@ void menu() {
 }
 
 int main(int argc, char* argv[]) {
-    //std::cout << "Program name : " << argv[0] << std::endl;
+    // std::cout << "Program name : " << argv[0] << std::endl;
     // std::cout << "Prt num : " << argc - 1 << std::endl;
-
+    fileLog << "[" << local_time << "]" << " ->  " << "Program started!!! argc -- " << argc - 1 << "  |   argv -- " << argv[0] << "\n";
 
     int result_mb = MessageBoxW(NULL, L"Это тестовая версия (0.1.0), хотите продолжить?", L"Предупреждение", MB_YESNO | MB_ICONWARNING);
-
+    
     if (result_mb == IDYES) {
         menu();
     }

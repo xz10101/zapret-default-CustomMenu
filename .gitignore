@@ -1,1 +1,6 @@
+# exe, bat, sh files:
 *.exe
+
+# folder:
+/release/
+src/installer_beta/
