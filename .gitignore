@@ -1,5 +1,6 @@
 # exe, bat, sh files:
 *.exe
+*.log
 
 # folder:
 /release/

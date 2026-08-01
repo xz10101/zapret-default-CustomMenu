@@ -24,10 +24,14 @@
 // Основной путь для работы с запретом
 namespace fsCore = std::filesystem;
 
-std::ofstream fileLog ("log_file.log");
+std::ofstream fileLog ("log_file.log", std::ios::unitbuf);
 
 static auto now = std::chrono::system_clock::now();
 static auto local_time = std::chrono::current_zone()->to_local(now);
+
+void FileLogReturn(std::string out, std::string out_2) {
+    fileLog << "[" << local_time << "]" << " ->  " << out << out_2 << "\n";
+}
 
 fsCore::path GetExeDirectory() {
     wchar_t buffer[MAX_PATH] = {0};
@@ -40,16 +44,19 @@ std::vector<std::string> ReturnBatService(const fsCore::path& dir) {
     std::vector<std::string> files;
     try {
         if (!fsCore::exists(dir)) {
+            FileLogReturn("Directory does not exist", " ");
             std::cerr << "Error! Directory does not exist: " << dir.string() << "\n";
             return files;
         }
         for (const auto& entry : fsCore::directory_iterator(dir)) {
             if (entry.is_regular_file() && entry.path().extension() == ".bat") {
+                // FileLogReturn(".bat in zapret completed!", " ");
                 files.push_back(entry.path().string());
             }
         }
         std::sort(files.begin(), files.end());
     } catch (const fsCore::filesystem_error& e) {
+        FileLogReturn("error open folder", " ");
         std::cerr << "Error! " << e.what() << "\n";
     }
     return files;
