@@ -9,8 +9,10 @@
 #include <fstream>
 #include <chrono>
 #include <windows.h>
-// #include <conio.h>
+#include <conio.h>
 #include "WindowsProcess.h"
+
+#define _PUBLIC_VERSION "0.1.1"
 /* 
 
     :: 
@@ -24,19 +26,17 @@
 // Основной путь для работы с запретом
 namespace fsCore = std::filesystem;
 
-std::ofstream fileLog ("log_file.log", std::ios::unitbuf);
+std::ofstream fileLog ("log_file.log");
 
 static auto now = std::chrono::system_clock::now();
 static auto local_time = std::chrono::current_zone()->to_local(now);
 
-void FileLogReturn(std::string out, std::string out_2) {
-    fileLog << "[" << local_time << "]" << " ->  " << out << out_2 << "\n";
-}
 
 fsCore::path GetExeDirectory() {
     wchar_t buffer[MAX_PATH] = {0};
     GetModuleFileNameW(NULL, buffer, MAX_PATH);
     return fsCore::path(buffer).parent_path();
+    fileLog << "[" << local_time << "]" << " ->  " << "GetExeDirectory()" << "\n";
 }
 
 
@@ -44,19 +44,20 @@ std::vector<std::string> ReturnBatService(const fsCore::path& dir) {
     std::vector<std::string> files;
     try {
         if (!fsCore::exists(dir)) {
-            FileLogReturn("Directory does not exist", " ");
+            fileLog << "[" << local_time << "]" << " ->  " << "directory does not exist" << "\n";
             std::cerr << "Error! Directory does not exist: " << dir.string() << "\n";
             return files;
         }
         for (const auto& entry : fsCore::directory_iterator(dir)) {
             if (entry.is_regular_file() && entry.path().extension() == ".bat") {
-                // FileLogReturn(".bat in zapret completed!", " ");
+                
                 files.push_back(entry.path().string());
             }
         }
+        fileLog << "[" << local_time << "]" << " ->  " << "Files is found!" << "\n";
         std::sort(files.begin(), files.end());
     } catch (const fsCore::filesystem_error& e) {
-        FileLogReturn("error open folder", " ");
+        fileLog << "[" << local_time << "]" << " ->  " << "folder not open (folder -> true)" << "\n";
         std::cerr << "Error! " << e.what() << "\n";
     }
     return files;
@@ -66,7 +67,11 @@ std::vector<std::string> ReturnBatService(const fsCore::path& dir) {
 void menu() {
     fsCore::path exe_dir = GetExeDirectory();
     fsCore::path zapret_dir = exe_dir / "zapret_discord_youtube";
+    fileLog << std::unitbuf;
     fileLog << "[" << local_time << "]" << " ->  " << "zapret-console is started\n";
+
+    
+
     while (true) {
         std::system("cls");
         std::println("Welcome to menu ZAPRET-DISCORD-CONSOLE");
@@ -145,17 +150,67 @@ void menu() {
 
 int main(int argc, char* argv[]) {
     // std::cout << "Program name : " << argv[0] << std::endl;
-    // std::cout << "Prt num : " << argc - 1 << std::endl;
+    // std::cout << "Prt num : " << argc - 1 << std::endl
+
+
+            for (int i = 1; i < argc; ++i) {
+                fileLog << "[" << local_time << "]" << " ->  " << "argc -- " << argc - 1 << "  |   argv -- " << argv[i] << "\n";
+                std::string arg = argv[i];
+
+                if (arg == "-h" || arg == "--help") {
+                    fileLog << "[" << local_time << "]" << " ->  " << "argv -- " << arg << "\n";
+                    std::println("-h | --help    --- Print help command\n");
+                    std::println("-s | --settings * --- Open settings");
+                    std::println("-Ss | --show-settings * --- Show all parametrs in JSON(prototype, son real JSON) style");
+                    std::println("-Sc | --show-config --- Show all config (In all folder)");
+                    std::println("-I | --information  --- Print all info");
+                    std::println("* -> function testing or not released");
+
+                }
+                else if (arg == "-s" || arg == "--settings") {
+                    fileLog << "[" << local_time << "]" << " ->  " << "argv -- " << arg << "\n";
+                    std::println("{} -> not released", arg);
+                    return 0;
+                }
+                else if (arg == "-Ss" || arg == "--show-settings") {
+                    fileLog << "[" << local_time << "]" << " ->  " << "argv -- " << arg << "\n";
+                    std::println("{} -> not released", arg);
+                    return 0;
+                }
+                else if (arg == "-Sc" || arg == "--show-config") {
+                    fileLog << "[" << local_time << "]" << " ->  " << "argv -- " << arg << "\n";
+                    fsCore::path exe_dir = GetExeDirectory();
+                    fsCore::path zapret_dir = exe_dir / "zapret_discord_youtube";
+
+                    auto bat_files = ReturnBatService(zapret_dir);
+                        if (bat_files.empty()) {
+                            std::println("Error! No .bat files found.");
+                            fileLog << "[" << local_time << "]" << " ->  " << "not found .bat files, return\n";
+                            std::system("pause");
+                            return 1;
+                        }
+
+                        for (size_t i = 0; i < bat_files.size(); ++i) {
+                            std::println("[{}] = '{}'", i + 1, fsCore::path(bat_files[i]).filename().string());
+                        }
+                    
+                        return 0;
+                }
+                else if (arg.empty()) {
+                    menu();
+                }
+                else {
+                    fileLog << "[" << local_time << "]" << " ->  " << "argv -- " << arg << " -> not found" << "\n";
+                    std::println("{} not found prt", arg);
+                    return 1;
+                }
+
+                    
+                }
+            
+
     fileLog << "[" << local_time << "]" << " ->  " << "Program started!!! argc -- " << argc - 1 << "  |   argv -- " << argv[0] << "\n";
 
-    int result_mb = MessageBoxW(NULL, L"Это тестовая версия (0.1.0), хотите продолжить?", L"Предупреждение", MB_YESNO | MB_ICONWARNING);
-    
-    if (result_mb == IDYES) {
-        menu();
-    }
-    else {
-        return 1;
-    }
 
     return 0;
 }
